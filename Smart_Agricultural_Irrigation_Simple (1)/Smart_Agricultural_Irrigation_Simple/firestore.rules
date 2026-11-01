@@ -1,0 +1,220 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: admins
+// Document ID: {uid}  — Firebase Auth UID of the admin
+// Fields:
+//   (No required fields; document existence is the signal)
+//   May optionally contain metadata added by the owner in the Console.
+// Access:
+//   - Written ONLY from the Firebase Console by the project owner.
+//   - A client can read its OWN admin doc (to confirm status).
+//   - No client write ever permitted.
+//
+// Collection: irrigationRequests
+// Document ID: auto-generated {docId}
+// Fields:
+//   - userId          : string (required, immutable) — Auth UID of the farmer
+//   - fieldId         : string (required, immutable) — identifier of the farm field
+//   - cropName        : string (required, immutable) — name of the crop
+//   - waterRequired   : number (required, immutable, > 0) — requested water amount (litres)
+//   - status          : string (required) — workflow status ('Pending Review', etc.)
+//   - fulfillmentStatus : string (required) — delivery status ('Pending', etc.)
+//   - approvedWater   : number (required) — amount approved by admin (starts at 0)
+//   - waterDelivered  : number (required) — amount actually delivered (starts at 0)
+//
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===========================================================
+    // Helper Functions
+    // ===========================================================
+
+    // True when the caller is signed in via Firebase Auth.
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // True when the signed-in user's UID matches the given uid.
+    // Used for ownership checks based on explicit uid argument.
+    function isCallerUid(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    // True when the signed-in user owns the existing document
+    // (reads resource.data.userId from the existing Firestore document).
+    function isOwner() {
+      return isAuthenticated() && resource.data.userId == request.auth.uid;
+    }
+
+    // Admin check: derive authority from a server-side Firestore document,
+    // NOT from client-supplied data or email addresses.
+    // The admins/{uid} document is written ONLY from the Firebase Console.
+    function isAdmin() {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ===========================================================
+    // Domain Validator: irrigationRequests — CREATE
+    // ===========================================================
+    //
+    // Enforces:
+    //   1. Strict schema — only the 8 defined fields are allowed (no schema pollution).
+    //   2. Type safety — every field's CEL type is checked explicitly.
+    //   3. Size / DoS limits — string fields are bounded.
+    //   4. Business-logic initial values — status, fulfillmentStatus, approvedWater,
+    //      waterDelivered are locked to their safe starting values.
+    //   5. Ownership — userId must equal the caller's UID (no hijacking).
+    //
+    function isValidIrrigationCreate() {
+      let d = request.resource.data;
+      return
+        // ── Schema: only these 8 fields are permitted ──────────────────────────
+        d.keys().hasOnly([
+          'userId', 'fieldId', 'cropName', 'waterRequired',
+          'status', 'fulfillmentStatus', 'approvedWater', 'waterDelivered'
+        ]) &&
+        // ── Required fields must all be present ───────────────────────────────
+        d.keys().hasAll([
+          'userId', 'fieldId', 'cropName', 'waterRequired',
+          'status', 'fulfillmentStatus', 'approvedWater', 'waterDelivered'
+        ]) &&
+        // ── userId: string, owned by caller, bounded ──────────────────────────
+        d.userId is string &&
+        d.userId == request.auth.uid &&
+        d.userId.size() > 0 &&
+        d.userId.size() <= 128 &&
+        // ── fieldId: non-empty string, bounded ────────────────────────────────
+        d.fieldId is string &&
+        d.fieldId.size() > 0 &&
+        d.fieldId.size() <= 256 &&
+        // ── cropName: non-empty string, bounded ───────────────────────────────
+        d.cropName is string &&
+        d.cropName.size() > 0 &&
+        d.cropName.size() <= 256 &&
+        // ── waterRequired: positive number ────────────────────────────────────
+        d.waterRequired is number &&
+        d.waterRequired > 0 &&
+        // ── Initial workflow values (farmer may NOT pre-set admin fields) ──────
+        d.status == 'Pending Review' &&
+        d.fulfillmentStatus == 'Pending' &&
+        d.approvedWater == 0 &&
+        d.waterDelivered == 0;
+    }
+
+    // ===========================================================
+    // Domain Validator: irrigationRequests — UPDATE
+    // ===========================================================
+    //
+    // Admins may freely modify admin-managed fields (status, fulfillmentStatus,
+    // approvedWater, waterDelivered) but MUST NOT touch the immutable farmer
+    // fields (userId, fieldId, cropName, waterRequired).
+    //
+    // Enforces:
+    //   1. Strict schema — only the 8 defined fields remain (no new fields added).
+    //   2. Type safety — every field type re-validated after write.
+    //   3. Immutable fields — userId, fieldId, cropName, waterRequired cannot change.
+    //   4. Non-negative numbers — approvedWater and waterDelivered are >= 0.
+    //
+    function isValidIrrigationUpdate() {
+      let d = request.resource.data;
+      return
+        // ── Schema: only the original 8 fields are permitted ──────────────────
+        d.keys().hasOnly([
+          'userId', 'fieldId', 'cropName', 'waterRequired',
+          'status', 'fulfillmentStatus', 'approvedWater', 'waterDelivered'
+        ]) &&
+        // ── Immutable farmer fields must remain unchanged ─────────────────────
+        d.userId        == resource.data.userId &&
+        d.fieldId       == resource.data.fieldId &&
+        d.cropName      == resource.data.cropName &&
+        d.waterRequired == resource.data.waterRequired &&
+        // ── Type checks on all remaining fields ───────────────────────────────
+        d.userId is string &&
+        d.userId.size() > 0 &&
+        d.userId.size() <= 128 &&
+        d.fieldId is string &&
+        d.fieldId.size() > 0 &&
+        d.fieldId.size() <= 256 &&
+        d.cropName is string &&
+        d.cropName.size() > 0 &&
+        d.cropName.size() <= 256 &&
+        d.waterRequired is number &&
+        d.waterRequired > 0 &&
+        // ── Admin-writable fields: type + sensible bounds ─────────────────────
+        d.status is string &&
+        d.status.size() > 0 &&
+        d.status.size() <= 128 &&
+        d.fulfillmentStatus is string &&
+        d.fulfillmentStatus.size() > 0 &&
+        d.fulfillmentStatus.size() <= 128 &&
+        d.approvedWater is number &&
+        d.approvedWater >= 0 &&
+        d.waterDelivered is number &&
+        d.waterDelivered >= 0;
+    }
+
+    // ===========================================================
+    // Collection: admins/{uid}
+    // ===========================================================
+    //
+    // Existence of this document signals admin status.
+    // It is written EXCLUSIVELY from the Firebase Console by the project owner.
+    // No client — not even another admin — may create, update, or delete these
+    // documents via the SDK.
+    //
+    match /admins/{uid} {
+
+      // An admin can read their OWN document to confirm their status.
+      // Normal users cannot read anyone else's admin record.
+      allow read: if isCallerUid(uid);
+
+      // Absolute hard-deny on ALL client writes.
+      // Firebase Console / Admin SDK bypass security rules; only they may write.
+      allow write: if false;
+    }
+
+    // ===========================================================
+    // Collection: irrigationRequests/{docId}
+    // ===========================================================
+    //
+    // Farmers submit irrigation requests; admins review and fulfil them.
+    //
+    match /irrigationRequests/{docId} {
+
+      // Farmers can read only their own requests.
+      // Admins can read all requests (needed for the admin dashboard query).
+      allow read: if isOwner() || isAdmin();
+
+      // Farmers create new requests for themselves only.
+      // The domain validator enforces schema, types, size limits, and locked
+      // initial values — preventing pre-approval attacks and DoS payloads.
+      allow create: if isAuthenticated() && isValidIrrigationCreate();
+
+      // Only admins may update existing documents (e.g., approve water, mark
+      // fulfilment). The domain validator enforces that immutable farmer fields
+      // are never changed, and that the document stays type-safe after the write.
+      allow update: if isAdmin() && isValidIrrigationUpdate();
+
+      // Only admins may delete requests.
+      allow delete: if isAdmin();
+    }
+
+    // ===========================================================
+    // Catch-all: deny everything else
+    // ===========================================================
+    //
+    // Any collection or document path not explicitly matched above is
+    // denied by default. This wildcard makes the default-deny explicit.
+    //
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

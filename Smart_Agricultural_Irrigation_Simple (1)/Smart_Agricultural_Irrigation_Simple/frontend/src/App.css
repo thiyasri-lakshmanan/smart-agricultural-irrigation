@@ -1,0 +1,370 @@
+/* ==========================================================================
+   Smart Agricultural Irrigation & Water Allocation System
+   Clean, Elegant, Bootstrap 5 Compatible Stylesheet
+   ========================================================================== */
+
+:root {
+  --color-forest: #163829;
+  --color-forest-dark: #0f271c;
+  --color-emerald: #198754;
+  --color-emerald-light: #2d7857;
+  --color-bg: #f8faf8;
+  --color-card-bg: #ffffff;
+  --color-border: #e2e8e0;
+  --color-text-main: #212529;
+  --color-text-muted: #6c757d;
+  --color-beige: #f4f6f0;
+}
+
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-text-main);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6, .brand-title {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-weight: 600;
+  color: var(--color-forest-dark);
+}
+
+/* ==========================================
+   Sidebar Styling
+   ========================================== */
+/* ==========================================
+   Sidebar Styling
+   ========================================== */
+.app-sidebar {
+  width: 260px;
+  background-color: var(--color-forest);
+  color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  transition: width 0.25s ease, margin-left 0.25s ease, transform 0.25s ease;
+}
+
+/* Desktop: Sidebar occupies its own 260px space in flex layout */
+@media (min-width: 992px) {
+  .app-sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    min-height: 100vh;
+    width: 260px;
+    min-width: 260px;
+    flex-shrink: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 1020;
+    transition: width 0.25s ease, min-width 0.25s ease;
+  }
+
+  /* Desktop collapsed state: smoothly hides sidebar and expands content */
+  .app-sidebar.collapsed {
+    width: 0 !important;
+    min-width: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden;
+    pointer-events: none;
+  }
+}
+
+/* Mobile: Sidebar behaves as an offcanvas overlay */
+@media (max-width: 991.98px) {
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    height: 100vh;
+    z-index: 1050;
+    overflow-y: auto;
+    overflow-x: hidden;
+    transform: translateX(-100%);
+    box-shadow: none;
+  }
+
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.35);
+  }
+}
+
+.mobile-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 1045;
+}
+
+.sidebar-header {
+  padding: 1.5rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-brand {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #ffffff;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.sidebar-nav {
+  padding: 1rem 0;
+  flex: 1;
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1.25rem;
+  color: #d1e7dd;
+  text-decoration: none;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease;
+  border-left: 3px solid transparent;
+}
+
+.sidebar-link:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  color: #ffffff;
+}
+
+.sidebar-link.active {
+  background-color: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  border-left-color: #20c997;
+  font-weight: 600;
+}
+
+.sidebar-link i {
+  font-size: 1.1rem;
+}
+
+.sidebar-footer {
+  padding: 1rem 1.25rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.15);
+}
+
+/* ==========================================
+   Header Navbar Styling
+   ========================================== */
+.app-navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+  min-height: 64px;
+  position: sticky;
+  top: 0;
+  z-index: 1010;
+}
+
+/* ==========================================
+   Layout Containers
+   ========================================== */
+.main-wrapper {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  position: relative;
+}
+
+.content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background-color: var(--color-bg);
+  min-height: 100vh;
+  transition: all 0.25s ease;
+}
+
+.page-container {
+  padding: 1.5rem;
+  max-width: 1320px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ==========================================
+   Card Styling
+   ========================================== */
+.custom-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  margin-bottom: 1.25rem;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.custom-card:hover {
+  box-shadow: 0 4px 12px rgba(22, 56, 41, 0.06);
+}
+
+.card-header-clean {
+  background: #ffffff;
+  border-bottom: 1px solid var(--color-border);
+  padding: 1rem 1.25rem;
+  font-weight: 600;
+  font-size: 1.05rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* Summary Stat Card */
+.stat-card {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(22, 56, 41, 0.07);
+}
+
+.stat-icon-wrapper {
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.35rem;
+}
+
+.stat-icon-green {
+  background-color: #d1e7dd;
+  color: #0f5132;
+}
+
+.stat-icon-blue {
+  background-color: #cff4fc;
+  color: #055160;
+}
+
+.stat-icon-amber {
+  background-color: #fff3cd;
+  color: #664d03;
+}
+
+.stat-icon-red {
+  background-color: #f8d7da;
+  color: #842029;
+}
+
+/* ==========================================
+   Table Enhancements
+   ========================================== */
+.table-custom {
+  margin-bottom: 0;
+}
+
+.table-custom th {
+  background-color: #f4f6f0;
+  color: var(--color-forest);
+  font-weight: 600;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-custom td {
+  padding: 0.85rem 1rem;
+  vertical-align: middle;
+  font-size: 0.92rem;
+  border-bottom: 1px solid #edf1ea;
+}
+
+.table-custom tbody tr:hover {
+  background-color: #f9fbf8;
+}
+
+/* ==========================================
+   Form Enhancements
+   ========================================== */
+.form-control:focus, .form-select:focus {
+  border-color: #2d7857;
+  box-shadow: 0 0 0 0.25rem rgba(45, 120, 87, 0.15);
+}
+
+.btn-primary-forest {
+  background-color: var(--color-forest);
+  border-color: var(--color-forest);
+  color: #ffffff;
+}
+
+.btn-primary-forest:hover {
+  background-color: var(--color-forest-dark);
+  border-color: var(--color-forest-dark);
+  color: #ffffff;
+}
+
+.btn-emerald {
+  background-color: var(--color-emerald);
+  border-color: var(--color-emerald);
+  color: #ffffff;
+}
+
+.btn-emerald:hover {
+  background-color: #146c43;
+  border-color: #13653f;
+  color: #ffffff;
+}
+
+/* ==========================================
+   Auth Layout (Login & Signup)
+   ========================================== */
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f4f6f0;
+  padding: 1.5rem;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(22, 56, 41, 0.08);
+  border: 1px solid var(--color-border);
+  padding: 2.25rem;
+}
+
+.auth-logo {
+  width: 52px;
+  height: 52px;
+  background-color: #d1e7dd;
+  color: #0f5132;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  margin: 0 auto 1rem;
+}

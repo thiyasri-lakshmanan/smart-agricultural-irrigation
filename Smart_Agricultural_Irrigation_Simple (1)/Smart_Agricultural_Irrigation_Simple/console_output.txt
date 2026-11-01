@@ -1,0 +1,307 @@
+﻿========================================================================================
+             SMART AGRICULTURAL IRRIGATION AND WATER ALLOCATION SYSTEM
+========================================================================================
+
+========================================================================================
+SECTION 1 - SYSTEM INITIALIZATION
+========================================================================================
+
+[RESERVOIR METRICS]
+Reservoir ID             : RES
+Total Storage Capacity   : 40000 L
+Initially Available Water: 18000 L
+
+[NETWORK SUMMARY]
+Number of Registered Fields: 8
+Number of Canal Connections: 12
+
+[REGISTERED AGRICULTURAL FIELDS]
+-------------------------------------------------------------------------
+Field ID | Farmer Name    | Crop         | Soil Moisture  | Crop Priority 
+-------------------------------------------------------------------------
+F1       | Anbu           | Paddy        | 18.0%          | 1 (High)      
+F2       | Bala           | Banana       | 24.0%          | 1 (High)      
+F3       | Chitra         | Turmeric     | 30.0%          | 2 (Medium)    
+F4       | Devi           | Cotton       | 30.0%          | 2 (Medium)    
+F5       | Elango         | Maize        | 35.0%          | 3 (Low)       
+F6       | Farida         | Vegetables   | 20.0%          | 2 (Medium)    
+F7       | Gopal          | Millet       | 40.0%          | 3 (Low)       
+F8       | Hema           | Sugarcane    | 16.0%          | 2 (Medium)    
+-------------------------------------------------------------------------
+
+[CANAL INFRASTRUCTURE CONNECTIONS]
+---------------------------------------------------
+Link ID  | From Node  | To Node    | Status        
+---------------------------------------------------
+L1       | RES        | J1         | OPERATIONAL   
+L2       | J1         | J2         | OPERATIONAL   
+L3       | J1         | J3         | OPERATIONAL   
+L4       | J2         | F1         | OPERATIONAL   
+L5       | J2         | F2         | OPERATIONAL   
+L6       | J2         | F3         | OPERATIONAL   
+L7       | J3         | F4         | OPERATIONAL   
+L8       | J3         | F5         | OPERATIONAL   
+L9       | J3         | J4         | OPERATIONAL   
+L10      | J4         | F6         | OPERATIONAL   
+L11      | J4         | F7         | OPERATIONAL   
+L12      | J4         | F8         | BLOCKED       
+---------------------------------------------------
+
+========================================================================================
+SECTION 2 - IRRIGATION REQUESTS
+========================================================================================
+
+[SUBMITTED IRRIGATION REQUESTS]
+------------------------------------------------------------------------------------------
+Request ID  | Field ID  | Type             | Water Requested  | Soil Moisture  | Priority  
+------------------------------------------------------------------------------------------
+R1          | F1        | Routine          | 5000 L           | 18.0%          | 1         
+R2          | F8        | Routine          | 6000 L           | 16.0%          | 2         
+R3          | F3        | Routine          | 5000 L           | 30.0%          | 2         
+R4          | F4        | Routine          | 5000 L           | 30.0%          | 2         
+R5          | F6        | Drought Relief   | 7000 L           | 20.0%          | 0         
+------------------------------------------------------------------------------------------
+
+[PRIORITY EVALUATION ORDER]
+(Determined by IrrigationPriorityPolicy: Class -> Soil Moisture -> Arrival Order)
+--------------------------------------------------------------------------------------------------------------
+Queue Rank  | Request ID  | Field ID  | Type             | Priority Class  | Soil Moisture  | Water Requested 
+--------------------------------------------------------------------------------------------------------------
+1           | R5          | F6        | Drought Relief   | 0 (Emergency)   | 20.0%          | 7000 L          
+2           | R1          | F1        | Routine          | 1               | 18.0%          | 5000 L          
+3           | R2          | F8        | Routine          | 2               | 16.0%          | 6000 L          
+4           | R3          | F3        | Routine          | 2               | 30.0%          | 5000 L          
+5           | R4          | F4        | Routine          | 2               | 30.0%          | 5000 L          
+--------------------------------------------------------------------------------------------------------------
+
+========================================================================================
+SECTION 3 - WATER ALLOCATION PROCESS
+========================================================================================
+
+Processing Request R5
+Field: F6
+Type: Drought Relief
+Water Requested: 7000 L
+Available Water: 18000 L
+
+Checking Canal Connectivity...
+Result: FIELD REACHABLE
+
+Checking Reservoir Availability...
+Result: SUFFICIENT WATER
+
+Allocating Water...
+Water Delivered: 7000 L
+Remaining Request: 0 L
+Updated Reservoir Balance: 11000 L
+Status: COMPLETED
+--------------------------------------------------
+Processing Request R1
+Field: F1
+Type: Routine
+Water Requested: 5000 L
+Available Water: 11000 L
+
+Checking Canal Connectivity...
+Result: FIELD REACHABLE
+
+Checking Reservoir Availability...
+Result: SUFFICIENT WATER
+
+Allocating Water...
+Water Delivered: 5000 L
+Remaining Request: 0 L
+Updated Reservoir Balance: 6000 L
+Status: COMPLETED
+--------------------------------------------------
+Processing Request R2
+Field: F8
+Type: Routine
+Water Requested: 6000 L
+Available Water: 6000 L
+
+Checking Canal Connectivity...
+Result: FIELD UNREACHABLE
+Reason: No operational canal path currently connects the reservoir to this field.
+
+Water Delivered: 0 L
+Remaining Request: 6000 L
+Updated Reservoir Balance: 6000 L
+Status: PENDING
+--------------------------------------------------
+Processing Request R3
+Field: F3
+Type: Routine
+Water Requested: 5000 L
+Available Water: 6000 L
+
+Checking Canal Connectivity...
+Result: FIELD REACHABLE
+
+Checking Reservoir Availability...
+Result: SUFFICIENT WATER
+
+Allocating Water...
+Water Delivered: 5000 L
+Remaining Request: 0 L
+Updated Reservoir Balance: 1000 L
+Status: COMPLETED
+--------------------------------------------------
+Processing Request R4
+Field: F4
+Type: Routine
+Water Requested: 5000 L
+Available Water: 1000 L
+
+Checking Canal Connectivity...
+Result: FIELD REACHABLE
+
+Checking Reservoir Availability...
+Result: INSUFFICIENT WATER
+
+Allocating Water...
+Water Delivered: 1000 L
+Remaining Request: 4000 L
+Updated Reservoir Balance: 0 L
+Status: PARTIALLY COMPLETED
+--------------------------------------------------
+Current Reservoir Balance: 0 L
+
+========================================================================================
+SECTION 4 - WEATHER AND REQUEST UPDATES
+========================================================================================
+
+Weather Update Triggered    : LIGHT RAIN
+Field ID                    : F8 (Hema - Sugarcane)
+Previous Soil Moisture      : 16.0%
+Updated Soil Moisture       : 38.0%
+Previous Water Requirement  : 6000 L
+Revised Water Requirement   : 3500 L
+Updated Pending Request Status: PENDING (Unmet: 3500 L)
+
+[RE-EVALUATED PENDING REQUESTS IN PRIORITY QUEUE]
+--------------------------------------------------------------------------------------------------------------
+Queue Rank  | Request ID  | Field ID  | Type             | Priority Class  | Soil Moisture  | Unmet Demand    
+--------------------------------------------------------------------------------------------------------------
+1           | R4          | F4        | Routine          | 2               | 30.0%          | 4000 L          
+2           | R2          | F8        | Routine          | 2               | 38.0%          | 3500 L          
+--------------------------------------------------------------------------------------------------------------
+
+========================================================================================
+SECTION 5 - CANAL REPAIR AND WATER REFILL
+========================================================================================
+
+Canal ID Being Repaired     : L12 (J4 -> F8)
+Previous Canal Status       : BLOCKED
+Updated Canal Status        : OPERATIONAL
+
+Reservoir ID                : RES
+Reservoir Balance Before Refill: 0 L
+Quantity Added              : 15000 L
+Reservoir Balance After Refill : 15000 L
+
+========================================================================================
+SECTION 6 - REALLOCATION
+========================================================================================
+
+Processing Request R4
+Field: F4
+Type: Routine
+Water Requested: 4000 L
+Available Water: 15000 L
+
+Checking Canal Connectivity...
+Result: FIELD REACHABLE
+
+Checking Reservoir Availability...
+Result: SUFFICIENT WATER
+
+Allocating Water...
+Water Delivered: 4000 L
+Remaining Request: 0 L
+Updated Reservoir Balance: 11000 L
+Status: COMPLETED
+--------------------------------------------------
+Processing Request R2
+Field: F8
+Type: Routine
+Water Requested: 3500 L
+Available Water: 11000 L
+
+Checking Canal Connectivity...
+Result: FIELD REACHABLE
+
+Checking Reservoir Availability...
+Result: SUFFICIENT WATER
+
+Allocating Water...
+Water Delivered: 3500 L
+Remaining Request: 0 L
+Updated Reservoir Balance: 7500 L
+Status: COMPLETED
+--------------------------------------------------
+Current Reservoir Balance: 7500 L
+
+========================================================================================
+SECTION 7 - FINAL SYSTEM STATUS
+========================================================================================
+
+[SYSTEM ALLOCATION METRICS]
+Total Number of Requests       : 5
+Fully Satisfied Requests       : 5
+Partially Satisfied Requests   : 0
+Pending Requests               : 0
+Total Water Delivered          : 25500 L
+Final Reservoir Balance        : 7500 L
+Operational Canals             : 12
+Blocked Canals                 : 0
+
+[REQUEST COMPLETION SUMMARY]
+--------------------------------------------------------------------------------------------------
+Request ID  | Field ID  | Crop         | Requested   | Delivered   | Unmet       | Status            
+--------------------------------------------------------------------------------------------------
+R1          | F1        | Paddy        | 5000 L      | 5000 L      | 0 L         | COMPLETED         
+R2          | F8        | Sugarcane    | 3500 L      | 3500 L      | 0 L         | COMPLETED         
+R3          | F3        | Turmeric     | 5000 L      | 5000 L      | 0 L         | COMPLETED         
+R4          | F4        | Cotton       | 5000 L      | 5000 L      | 0 L         | COMPLETED         
+R5          | F6        | Vegetables   | 7000 L      | 7000 L      | 0 L         | COMPLETED         
+--------------------------------------------------------------------------------------------------
+
+[FINAL ALLOCATION HISTORY]
+--------------------------------------------------------------------------------------------------
+R5 | F6 | delivered=7000 L | unmet=0 L
+R1 | F1 | delivered=5000 L | unmet=0 L
+R2 | F8 | UNREACHABLE | pending=6000 L
+R3 | F3 | delivered=5000 L | unmet=0 L
+R4 | F4 | delivered=1000 L | unmet=4000 L
+R4 | F4 | delivered=4000 L | unmet=0 L
+R2 | F8 | delivered=3500 L | unmet=0 L
+--------------------------------------------------------------------------------------------------
+
+[IMPORTANT SYSTEM EVENTS]
+--------------------------------------------------------------------------------------------------
+Event 1: Manual moisture reading received for F1.
+Event 2: Manual moisture reading received for F2.
+Event 3: Manual moisture reading received for F3.
+Event 4: Manual moisture reading received for F4.
+Event 5: Manual moisture reading received for F5.
+Event 6: Manual moisture reading received for F6.
+Event 7: Manual moisture reading received for F7.
+Event 8: Manual moisture reading received for F8.
+Event 9: Weather label: SUNNY.
+Event 10: Weather label: CLOUDY.
+Event 11: Weather label: LIGHT RAIN.
+Event 12: Weather label: DRY WEEK.
+Event 13: Canal inspection update 1 recorded.
+Event 14: Canal inspection update 2 recorded.
+Event 15: Canal inspection update 3 recorded.
+Event 16: Canal inspection update 4 recorded.
+Event 17: Canal inspection update 5 recorded.
+Event 18: Canal inspection update 6 recorded.
+Event 19: Canal inspection update 7 recorded.
+Event 20: Canal inspection update 8 recorded.
+Event 21: Operator approved LIGHT RAIN revision for R2.
+Event 22: L12 changed to WORKING.
+Event 23: Reservoir refilled by 15000 L.
+Total Documented Events: 23
+========================================================================================
